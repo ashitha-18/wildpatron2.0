@@ -70,5 +70,21 @@ contract Wildpatron{
     function getAnimal(bytes32 animalId) public view  returns(Animal memory){
         return _animals[animalId];
     }
+
+    function WithdrawAnimalFunds(bytes32 animalId) public {
+        Animal storage animal =_animals[animalId];
+
+        require(msg.sender == animal.recipient, "not recipient");
+        require(animal.balance > 0, "no funds to withdraw");
+
+        unit256 amountToWithdraw = animal.balance;
+
+        animal.balance = 0;
+
+        payable(animal.recipient).transfer(amountToWithdraw);
+
+        emit WithdrawFunds(animalId, animal.recipient, an)
+
+    }
 }
 
