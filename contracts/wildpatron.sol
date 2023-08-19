@@ -15,34 +15,36 @@ contract Wildpatron{
     Counters.Counter public _animalCount;
 
     struct Animal {
-        string image;
+        string title;
         string description;
         address recipient;
         uint totalRaised;
-        unit balance;
+        uint balance;
     }
 
      // Mapping to store animals
 
-    mapping(uint => Animal) public _animals;
+    mapping(bytes32 => Animal) public _animals;
     // allows us to keep track of the who donates to a campaign and the amount they donated
     mapping(address=>mapping(bytes32=>uint256)) public userDonations;
-    calldata title, string calldata description
 
-    function generateAnimalId(address init,calldata title, string calldata description){
+    constructor(){
+
+    }
+
+    function generateAnimalId(address recipient, string calldata title, string calldata description) public pure returns(bytes32) {
         bytes32 animalId = keccak256(abi.encodePacked(title, description, recipient ));
         return animalId;
     }
 
-    function AddAnimal(string memory _image, string memory _description, address _recipient, uint _goal) public {
+    function AddAnimal(string calldata title, string calldata description ) public {
         
         bytes32 animalId = generateAnimalId(msg.sender, title, description);
        
 
-        Animal storage animal = animals[animalId];
+        Animal storage animal = _animals[animalId];
         animal.title  = title ;
-        animal.image = _image;
-        animal.description = _description;
+        animal.description = description;
         animal.recipient = msg.sender;
         animal.totalRaised = 0;
         _animalCount.increment();
@@ -77,13 +79,13 @@ contract Wildpatron{
         require(msg.sender == animal.recipient, "not recipient");
         require(animal.balance > 0, "no funds to withdraw");
 
-        unit256 amountToWithdraw = animal.balance;
+        uint256 amountToWithdraw = animal.balance;
 
         animal.balance = 0;
 
         payable(animal.recipient).transfer(amountToWithdraw);
 
-        emit WithdrawFunds(animalId, animal.recipient, an)
+        emit WithdrawFunds(animalId, animal.recipient, amountToWithdraw);
 
     }
 }
