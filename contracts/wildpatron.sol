@@ -37,37 +37,33 @@ contract Wildpatron{
         return animalId;
     }
 
-    function AddAnimal(string calldata title, string calldata description ) public {
+    function AddAnimal(string calldata title, string calldata description, address recipient ) public {
         
-        bytes32 animalId = generateAnimalId(msg.sender, title, description);
+        bytes32 animalId = generateAnimalId( recipient, title, description);
        
-
         Animal storage animal = _animals[animalId];
         animal.title  = title ;
         animal.description = description;
-        animal.recipient = msg.sender;
+        animal.recipient = recipient;
         animal.totalRaised = 0;
         _animalCount.increment();
-
-         emit AnimalAdded(animalId, msg.sender);
+         emit AnimalAdded(animalId, recipient);
     }
 
+    function donate(bytes32 animalId, uint256 amount) public payable {
+    Animal storage animal = _animals[animalId];
 
+    require(amount > 0, "Donation amount must be greater than 0");
+    require(msg.value == amount, "Incorrect ETH value");
 
-    function donate(bytes32 animalId) public payable {
-        Animal storage animal = _animals[animalId];
+    animal.totalRaised += amount;
+    animal.balance += amount;
 
-        uint256 amountToDonate = msg.value;
-        require(amountToDonate > 0, "Wrong ETH value");
+    userDonations[animal.recipient][animalId] += amount;
 
-        animal.totalRaised += amountToDonate;
-        animal.balance += amountToDonate;
-
-        userDonations[msg.sender][animalId] = amountToDonate;
-
-        emit FundsDonated(animalId, msg.sender, amountToDonate);
-
+    emit FundsDonated(animalId, animal.recipient, amount);
     }
+
 
     function getAnimal(bytes32 animalId) public view  returns(Animal memory){
         return _animals[animalId];
